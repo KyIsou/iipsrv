@@ -1,7 +1,7 @@
 /*
     IIP Command Handler Member Functions
 
-    Copyright (C) 2006-2014 Ruven Pillay.
+    Copyright (C) 2006-2013 Ruven Pillay.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include "Task.h"
 #include "Tokenizer.h"
-#include <cstdlib>
+#include <iostream>
 #include <algorithm>
 
 
@@ -59,10 +59,12 @@ Task* Task::factory( const string& t ){
   else if( type == "inv" ) return new INV;
   else if( type == "zoomify" ) return new Zoomify;
   else if( type == "spectra" ) return new SPECTRA;
+  else if( type == "histogram" ) return new HISTOGRAM;
   else if( type == "pfl" ) return new PFL;
   else if( type == "lyr" ) return new LYR;
+  else if( type == "channel" ) return new CHANNEL;
+  else if( type == "process" ) return new PROCESS;
   else if( type == "deepzoom" ) return new DeepZoom;
-  else if( type == "ctw" ) return new CTW;
   else return NULL;
 
 }
@@ -76,6 +78,137 @@ void Task::checkImage(){
 }
 
 
+void CHANNEL::run( Session* session, const std::string& argument ){
+
+  int channels[3] = { 1,2,3};
+  // Parse the argument list
+  int delimitter = argument.find( "," );
+  channels[0] = atoi( argument.substr( 0, delimitter ).c_str() );
+
+  int secondDelimitter = argument.find( ",", delimitter+1 );
+  channels[1] = atoi( argument.substr( delimitter + 1, secondDelimitter ).c_str() );
+  
+  channels[2] = atoi( argument.substr( secondDelimitter + 1,   argument.length() ).c_str() );
+ 
+  if(channels[0] <0 || channels[1] <0 || channels[2] < 0)
+  {
+	  channels[0]=1;
+	  channels[1]=2;
+	  channels[2]=3;
+  }
+
+  session->view->setChannels( channels );
+
+  session->view->want_ms = true;
+
+}
+
+
+void PROCESS::run( Session* session, const std::string& argument ){
+
+
+	int arguments[4];
+	int delimitter ,previousDelimitter=0;
+	for (int i = 0; i<4; i++)
+	{
+		delimitter = argument.find( ",", previousDelimitter );
+		arguments[i] = atoi( argument.substr( previousDelimitter, delimitter ).c_str() );
+		previousDelimitter = delimitter+1;
+	}
+	
+	
+	session->view->setProcessArgs( arguments );
+}
+
+
+/// Return the histogram for an image in XML format
+void HISTOGRAM::run( Session* session, const std::string& argument ){
+
+
+  if( session->loglevel >= 3 ) (*session->logfile) << "HISTOGRAM handler reached" << endl;
+ 
+ string content = "";
+
+ string path = (*session->image)->getFileName(0,0);
+  if( session->loglevel >= 3 ) (*session->logfile) << "HISTOGRAM handler reached" << path <<endl;
+ int index = path.rfind("/");
+ string directory  = path.substr(0, index+1);
+ string file = path.substr(index+1);
+ int pointIndex = file.rfind("_");
+ if (pointIndex != string::npos)
+ file.replace(0,3,"DIM").replace(pointIndex, string::npos, ".XML");
+ string fullPath = directory+file;
+ ifstream xmlFile (fullPath.c_str());
+ if (xmlFile.is_open())
+ {
+
+	string line ;
+	int pos ; 
+	while(xmlFile.good())
+	{
+	  getline(xmlFile,line); // get line from file
+      pos=line.find("Histogram_Band_List"); // search
+      if(pos!=string::npos) // string::npos is returned if string is not found
+	  {
+		  while (xmlFile.good())
+		  {
+			 content += line + "\r\n";
+			 getline(xmlFile,line); // get line from file
+			 pos=line.find("/Histogram_Band_List"); // search
+			 if(pos!=string::npos) // string::npos is returned if string is not found
+			 {
+				content += line;
+				break;
+			 }
+		  }
+			
+		  break;
+	  }
+    }	
+}
+ else
+	 *(session->logfile) <<"Unable to open "  << endl;
+
+#ifndef DEBUG
+  char str[1024];
+  snprintf( str, 1024,
+	    "Server: iipsrv/%s\r\n"
+	    "Content-Type: application/xml\r\n"
+	    "Cache-Control: max-age=%d\r\n"
+	    "Last-Modified: %s\r\n"
+	    "\r\n",
+	    VERSION, MAX_AGE, (*session->image)->getTimestamp().c_str() );
+
+  session->out->printf( (const char*) str );
+  session->out->flush();
+#endif
+
+  session->out->printf( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
+  session->out->printf( "<spectra>\n" );
+  session->out->flush();
+
+    session->out->printf( content.c_str() );
+    session->out->flush();
+
+
+  session->out->printf( "</spectra>" );
+
+  if( session->out->flush() == -1 ) {
+    if( session->loglevel >= 1 ){
+      *(session->logfile) << "HISTOGRAM :: Error flushing jpeg tile" << endl;
+    }
+  }
+
+
+  // Inform our response object that we have sent something to the client
+  session->response->setImageSent();
+
+  // Total SPECTRA response time
+  if( session->loglevel >= 2 ){
+    *(session->logfile) << "HISTOGRAM :: Total command time " << command_timer.getTime() << " microseconds" << endl;
+  }
+
+}
 
 void QLT::run( Session* session, const std::string& argument ){
 
@@ -305,15 +438,13 @@ void SHD::run( Session* session, const std::string& argument ){
 						   << values[0] << "," << values[1]  << endl;
 }
 
-
 void CMP::run( Session* session, const std::string& argument ){
 
   /* The argument is the colormap type: available colormaps are
      HOT, COLD, JET, BLUE, GREEN, RED
-   */
+  */
 
-  // Convert to lower case in order to do our string comparison
-  string ctype = argument;
+  string ctype = argument.c_str();
   transform( ctype.begin(), ctype.end(), ctype.begin(), ::tolower );
 
   if( session->loglevel >= 2 ) *(session->logfile) << "CMP handler reached" << endl;
@@ -329,13 +460,11 @@ void CMP::run( Session* session, const std::string& argument ){
   else session->view->cmapped = false;
 }
 
-
 void INV::run( Session* session, const std::string& argument ){
-  // Does not take an argument
+
   if( session->loglevel >= 2 ) *(session->logfile) << "INV handler reached" << endl;
   session->view->inverted = true;
 }
-
 
 void LYR::run( Session* session, const std::string& argument ){
 
@@ -360,56 +489,3 @@ void LYR::run( Session* session, const std::string& argument ){
 
 }
 
-
-void CTW::run( Session* session, const std::string& argument ){
-
-  /* Matrices should be formated as CTW=[a,b,c;d,e,f;g,h,i] where commas separate row values
-     and semi-colons separate columns.
-     Thus, the above argument represents the 3x3 square matrix:
-     [ a b c
-       d e f
-       g h i ]
-  */
-
-  if( argument.length() ){
-    if( session->loglevel >= 2 ) *(session->logfile) << "CTW handler reached" << endl;
-  }
-
-  int pos1 = argument.find("[");
-  int pos2 = argument.find("]");
-
-  // Extract the contents of the array
-  string line = argument.substr( pos1+1, pos2-pos1-1 );
-
-  // Tokenize on rows
-  Tokenizer col_izer( line, ";" );
-
-  while( col_izer.hasMoreTokens() ){
-
-    // Fill each row item
-    Tokenizer row_izer( col_izer.nextToken(), "," );
-    vector<float> row;
-    
-    while( row_izer.hasMoreTokens() ){
-      try{
-	row.push_back( atof( row_izer.nextToken().c_str() ) );
-      }
-      catch( const string& error ){
-	if( session->loglevel >= 1 ) *(session->logfile) << error << endl;
-      }
-    }
-    session->view->ctw.push_back( row );
-  }
-
-  if( session->loglevel >= 3 ){
-    *(session->logfile) << "CTW :: " << session->view->ctw[0].size() << "x" << session->view->ctw.size() << " matrix: " << endl;
-    for( unsigned int i=0; i<session->view->ctw.size(); i++ ){
-      *(session->logfile) <<  "CTW ::   ";
-      for( unsigned int j=0;j<session->view->ctw[0].size(); j++ ){
-	*(session->logfile) << session->view->ctw[i][j] << " ";
-      }
-      *(session->logfile) << endl;
-    }
-  }
-
-}

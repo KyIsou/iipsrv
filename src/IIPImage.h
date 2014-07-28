@@ -38,6 +38,7 @@
 #include "RawTile.h"
 
 
+
 /// Main class to handle the pyramidal image source
 /** Provides functions to open, get various information from an image source
     and get individual tiles. This class is the base class for specific image
@@ -61,9 +62,6 @@ class IIPImage {
   /// Indicates whether our image is a single file or part or a sequence
   bool isFile;
 
-  /// Image file name suffix
-  std::string suffix;
-
   /// Private function to determine the image type
   void testImageType();
 
@@ -82,11 +80,8 @@ class IIPImage {
 
  public:
 
-  // Supported image formats
-  enum ImageFormat { TIF, JPEG2000, UNSUPPORTED };
-
-  /// Return the image format e.g. tif
-  ImageFormat format;
+  /// Return the image type e.g. tif
+  std::string type;
 
   /// The image pixel dimensions
   std::vector <unsigned int> image_widths, image_heights;
@@ -126,17 +121,18 @@ class IIPImage {
 
   /// Image modification timestamp
   time_t timestamp;
-
+	
+	/// The number of multispectral components(channels) for this image
+   unsigned int components;
 
  public:
 
   /// Default Constructor
   IIPImage()
    : isFile( false ),
-    tile_width( 0 ),
-    tile_height( 0 ),
     bpp( 0 ),
     channels( 0 ),
+	components( 0 ),
     quality_layers( 0 ),
     isSet( false ),
     currentX( 0 ),
@@ -149,10 +145,9 @@ class IIPImage {
   IIPImage( const std::string& s )
    : imagePath( s ),
     isFile( false ),
-    tile_width( 0 ),
-    tile_height( 0 ),
     bpp( 0 ),
     channels( 0 ),
+	components( 0 ),
     quality_layers( 0 ),
     isSet( false ),
     currentX( 0 ),
@@ -167,10 +162,9 @@ class IIPImage {
     fileSystemPrefix( image.fileSystemPrefix ),
     fileNamePattern( image.fileNamePattern ),
     isFile( image.isFile ),
-    suffix( image.suffix ),
     horizontalAnglesList( image.horizontalAnglesList ),
     verticalAnglesList( image.verticalAnglesList ),
-    format( image.format ),
+    type( image.type ),
     image_widths( image.image_widths ),
     image_heights( image.image_heights ),
     tile_width( image.tile_width ),
@@ -179,6 +173,7 @@ class IIPImage {
     numResolutions( image.numResolutions ),
     bpp( image.bpp ),
     channels( image.channels ),
+	components( image.components ),
     sampleType( image.sampleType ),
     min( image.min ),
     max( image.max ),
@@ -216,9 +211,8 @@ class IIPImage {
    */
   const std::string getFileName( int x, int y );
 
-  /// Get the image format
-  //  const std::string& getImageFormat() { return format; };
-  ImageFormat getImageFormat() { return format; };
+  /// Get the image type
+  const std::string& getImageType() { return type; };
 
   /// Get the image timestamp
   /** @param s file path
@@ -238,7 +232,7 @@ class IIPImage {
   void setFileNamePattern( const std::string& pattern ) { fileNamePattern = pattern; };
 
   /// Return the number of available resolutions in the image
-  unsigned int getNumResolutions() { return numResolutions; };
+  int getNumResolutions() { return numResolutions; };
 
   /// Return the number of bits per pixel for this image
   unsigned int getNumBitsPerPixel() { return bpp; };
@@ -246,6 +240,8 @@ class IIPImage {
   /// Return the number of channels for this image
   unsigned int getNumChannels() { return channels; };
 
+  /// Return the number of channels for this image
+  unsigned int getNumComponents() { return components; };
   /// Return the minimum sample value for each channel
   /** @param n channel index
    */
@@ -316,8 +312,9 @@ class IIPImage {
       @param r resolution
       @param l quality layers
       @param t tile number
+	  @param want_ms bool to enable ms research (default false)
    */
-  virtual RawTile getTile( int h, int v, unsigned int r, int l, unsigned int t ) { return RawTile(); };
+  virtual RawTile getTile( int h, int v, unsigned int r, int l, unsigned int t, bool want_ms=false ) { return RawTile(); };
 
 
   /// Return a region for a given angle and resolution

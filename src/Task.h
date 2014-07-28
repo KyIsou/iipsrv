@@ -1,7 +1,7 @@
 /*
     IIP Generic Task Class
 
-    Copyright (C) 2006-2014 Ruven Pillay.
+    Copyright (C) 2006-2013 Ruven Pillay.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,23 +40,43 @@
 #endif
 
 
-// Define our http header cache max age (24 hours)
+// Define our http header cache max age
 #define MAX_AGE 86400
 
 
+// Use the hashmap extensions if we are using >= gcc 3.1
+#ifdef __GNUC__
 
-#ifdef HAVE_EXT_POOL_ALLOCATOR
+#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || (__GNUC__ >= 4)
+#define USE_HASHMAP 1
+#endif
+
+// And the high performance memory pool allocator if >= gcc 3.4
+#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || (__GNUC__ >= 4)
+#define USE_POOL_ALLOCATOR 1
+#endif
+
+#endif
+
+
+
+#ifdef USE_HASHMAP
+#include <ext/hash_map>
+
+#ifdef USE_POOL_ALLOCATOR
 #include <ext/pool_allocator.h>
-typedef HASHMAP < std::string, IIPImage,
+typedef __gnu_cxx::hash_map < const std::string, IIPImage,
 			      __gnu_cxx::hash< const std::string >,
 			      std::equal_to< const std::string >,
 			      __gnu_cxx::__pool_alloc< std::pair<const std::string,IIPImage> >
 			      > imageCacheMapType;
 #else
-typedef HASHMAP <std::string,IIPImage> imageCacheMapType;
+typedef __gnu_cxx::hash_map <const std::string,IIPImage> imageCacheMapType;
 #endif
 
-
+#else
+typedef std::map<const std::string,IIPImage> imageCacheMapType;
+#endif
 
 
 
@@ -116,6 +136,7 @@ class Task {
   /** @param type command type */
   static Task* factory( const std::string& type );
 
+
   /// Check image
   void checkImage();
 
@@ -137,12 +158,17 @@ class OBJ : public Task {
   void resolution_number();
   void colorspace( std::string arg );
   void tile_size();
+  void pic_tiles();
+  void component_number();
   void bits_per_channel();
   void horizontal_views();
   void vertical_views();
   void min_max_values();
   void metadata( std::string field );
 
+  protected : 
+  
+  string getXmlInfo(ifstream& file, string element);
 };
 
 
@@ -159,6 +185,17 @@ class SDS : public Task {
   void run( Session* session, const std::string& argument );
 };
 
+/// CHANNEL Command
+class CHANNEL : public Task {
+ public:
+  void run( Session* session, const std::string& argument );
+};
+
+/// PROCESS Command
+class PROCESS : public Task {
+ public:
+  void run( Session* session, const std::string& argument );
+};
 
 /// MINMAX Command
 class MINMAX : public Task {
@@ -289,8 +326,14 @@ class SPECTRA : public Task {
   void run( Session* session, const std::string& argument );
 };
 
+/// HISTOGRAM Request Command
+class HISTOGRAM : public Task {
+ public:
+  void run( Session* session, const std::string& argument );
+};
 
-/// SPECTRA Request Command
+
+/// PFL Request Command
 class PFL : public Task {
  public:
   void run( Session* session, const std::string& argument );
@@ -309,20 +352,5 @@ class DeepZoom : public Task {
  public:
   void run( Session* session, const std::string& argument );
 };
-
-
-/// IIIF Command
-class IIIF : public Task {
- public:
-  void run( Session* session, const std::string& argument );
-};
-
-
-/// Color Twist Command
-class CTW : public Task {
- public:
-  void run( Session* session, const std::string& argument );
-};
-
 
 #endif

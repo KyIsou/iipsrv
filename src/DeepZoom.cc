@@ -45,6 +45,7 @@ double log2(double max){
 void DeepZoom::run( Session* session, const std::string& argument ){
 
   if( session->loglevel >= 3 ) (*session->logfile) << "DeepZoom handler reached" << endl;
+  session = session;
 
   // Time this command
   if( session->loglevel >= 2 ) command_timer.start();

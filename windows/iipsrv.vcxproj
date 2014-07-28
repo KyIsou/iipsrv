@@ -92,8 +92,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>MemCacheClient.lib;kdu_v73R.lib;jpeg-static.lib;libfcgi.lib;libtiff.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MemCacheClient.lib;kdu_v64R.lib;jpeg.lib;libfcgi.lib;libtiff.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT;</IgnoreSpecificDefaultLibraries>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -110,8 +110,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>MemCacheClient.lib;kdu_v73R.lib;jpeg-static.lib;libfcgi.lib;libtiff.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MemCacheClient.lib;kdu_v64R.lib;jpeg.lib;libfcgi.lib;libtiff.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -136,17 +136,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-<<<<<<< HEAD
       <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MemCacheClient.lib;kdu_v64R.lib;jpeg.lib;libfcgi.lib;libtiff.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-=======
-      <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-<<<<<<< HEAD
-      <AdditionalDependencies>MemCacheClient.lib;kdu_v73R.lib;jpeg.lib;libfcgi.lib;libtiff.lib;zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
->>>>>>> 5f92adc... Big cleaning of unified installers folder
-=======
-      <AdditionalDependencies>MemCacheClient.lib;kdu_v73R.lib;jpeg-static.lib;libfcgi.lib;libtiff.lib;zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
->>>>>>> 252035d... small fix of IIS script, removed redundant Time.h definition, changed
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -173,17 +164,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-<<<<<<< HEAD
       <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MemCacheClient.lib;kdu_v64R.lib;jpeg.lib;libfcgi.lib;libtiff.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-=======
-      <AdditionalLibraryDirectories>$(ProjectDir)\dependencies\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-<<<<<<< HEAD
-      <AdditionalDependencies>MemCacheClient.lib;kdu_v73R.lib;jpeg.lib;libfcgi.lib;libtiff.lib;zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
->>>>>>> 5f92adc... Big cleaning of unified installers folder
-=======
-      <AdditionalDependencies>MemCacheClient.lib;kdu_v73R.lib;jpeg-static.lib;libfcgi.lib;libtiff.lib;zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
->>>>>>> 252035d... small fix of IIS script, removed redundant Time.h definition, changed
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>

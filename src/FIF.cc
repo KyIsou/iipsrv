@@ -155,19 +155,22 @@ void FIF::run( Session* session, const string& src ){
       Test for different image types - only TIFF is native for now
     ***************************************************************/
 
-    IIPImage::ImageFormat format = test.getImageFormat();
+    string imtype = test.getImageType();
 
-    if( format == IIPImage::ImageFormat::TIF ){
-      if( session->loglevel >= 2 ) *(session->logfile) << "FIF :: TIFF image detected" << endl;
+    // Transform the suffix to lower case
+    transform( imtype.begin(), imtype.end(), imtype.begin(), ::tolower );
+
+    if( imtype=="tif" || imtype=="tiff" || imtype=="ptif" || imtype=="dat" ){
+      if( session->loglevel >= 2 ) *(session->logfile) << "FIF :: TIFF image requested" << endl;
       *session->image = new TPTImage( test );
     }
 #ifdef HAVE_KAKADU
-    else if( format == IIPImage::ImageFormat::JPEG2000 ){
-      if( session->loglevel >= 2 ) *(session->logfile) << "FIF :: JPEG2000 image detected" << endl;
+    else if( imtype=="jpx" || imtype=="jp2" || imtype=="j2k" ){
+      if( session->loglevel >= 2 ) *(session->logfile) << "FIF :: JPEG2000 image requested" << endl;
       *session->image = new KakaduImage( test );
     }
 #endif
-    else throw string( "Unsupported image type: " + argument );
+    else throw string( "Unsupported image type: " + imtype );
 
     /* Disable module loading for now!
     else{

@@ -155,7 +155,7 @@ void DSOImage::openImage() throw (string)
     throw string( error );
   }
   func f = (func) getParameter;
-  int result = (int) (*f) ( (void*) path.c_str() );
+  long result = (long) (*f) ( (void*) path.c_str() );
   if( result ) throw getError();
 
 
@@ -165,7 +165,7 @@ void DSOImage::openImage() throw (string)
     throw string( error );
   }
   f = (func) getParameter;
-  tile_width = (int) (*f) (NULL);
+  tile_width = (long) (*f) (NULL);
 
 
   getParameter = dlsym( libHandle, "get_tile_width" );
@@ -174,7 +174,7 @@ void DSOImage::openImage() throw (string)
     throw string( error );
   }
   f = (func) getParameter;
-  tile_height = (int) (*f) (NULL);
+  tile_height = (long) (*f) (NULL);
 
 
   getParameter = dlsym( libHandle, "get_image_width" );
@@ -183,7 +183,7 @@ void DSOImage::openImage() throw (string)
     throw string( error );
   }
   f = (func) getParameter;
-  image_widths.push_back( (int) (*f) (NULL) );
+  image_widths.push_back( (long) (*f) (NULL) );
 
 
   getParameter = dlsym( libHandle, "get_image_height" );  
@@ -192,7 +192,7 @@ void DSOImage::openImage() throw (string)
     throw string( error );
   }
   f = (func) getParameter;
-  image_heights.push_back( (int) (*f) (NULL) );
+  image_heights.push_back( (long) (*f) (NULL) );
 
 
   getParameter = dlsym( libHandle, "get_num_resolutions" );  
@@ -201,13 +201,10 @@ void DSOImage::openImage() throw (string)
     throw string( error );
   }
   f = (func) getParameter;
-  numResolutions = (int) (*f) (NULL);
+  numResolutions = (long) (*f) (NULL);
 
 
 }
-
-
-
 
 
 void DSOImage::closeImage() throw (string)
@@ -223,7 +220,7 @@ void DSOImage::closeImage() throw (string)
     }
     
     func f = (func) getParameter;
-    int result = (int) (*f) (NULL);
+    long result = (long) (*f) (NULL);
     if( result ) throw getError();
   }
 }
@@ -250,7 +247,7 @@ RawTile DSOImage::getTile( int seq, int angle, unsigned int resolution, int laye
       throw string( error );
     }
     func f = (func) getParameter;
-    int result = (int) (*f) ( (void*) path.c_str() );
+    long result = (long) (*f) ( (void*) path.c_str() );
     if( result ) throw getError();
   }
 

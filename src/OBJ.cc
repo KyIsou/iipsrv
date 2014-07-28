@@ -23,7 +23,6 @@
 #include <iostream>
 #include <algorithm>
 
-
 using namespace std;
 
 
@@ -62,6 +61,10 @@ void OBJ::run( Session* s, const std::string& a )
   else if( argument == "max-size" ) max_size();
   // Tile-size
   else if( argument == "tile-size" ) tile_size();
+    // Pictures tiles information
+  else if( argument == "pic-tiles" ) pic_tiles();
+    // Component-number
+  else if( argument == "component-number" ) component_number();
   // Bits per pixel
   else if( argument == "bits-per-channel" ) bits_per_channel();
   // Vertical-views
@@ -176,6 +179,77 @@ void OBJ::tile_size(){
   session->response->addResponse( "Tile-size", x, y );
 }
 
+string OBJ::getXmlInfo(ifstream& file,  string element)
+{
+	string content = "";
+	string line ;
+	int pos ; 
+	while(file.good())
+	{
+	  getline(file,line); // get line from file
+      pos=line.find(element); // search
+      if(pos!=string::npos) // string::npos is returned if string is not found
+	  {
+          content = line;
+		  break;
+	  }
+    }
+	return content;
+}
+
+void OBJ::pic_tiles(){
+
+ string rows="-1",columns="-1" ;
+ int start, end;
+ string path = (*session->image)->getFileName(0,0);
+ int index = path.rfind("/");
+ string directory  = path.substr(0, index+1);
+ string file = path.substr(index+1);
+ int pointIndex = file.rfind("_");
+ if (pointIndex != string::npos)
+ file.replace(0,3,"DIM").replace(pointIndex, string::npos, ".XML");
+ string fullPath = directory+file;
+ ifstream xmlFile (fullPath.c_str());
+ if (xmlFile.is_open())
+ {
+    rows = this->getXmlInfo(xmlFile, "<NROWS>");
+	columns = this->getXmlInfo(xmlFile, "<NCOLS>");
+
+	
+
+	start = rows.find(">")+1;
+	end = rows.rfind("<");
+	if(index != string::npos && end != string::npos)
+		rows = rows.substr(start, end-start);
+
+	start = columns.find(">")+1;
+	end = columns.rfind("<");
+
+	if(index != string::npos && end != string::npos)
+		columns = columns.substr(start,end-start);
+}
+ else
+	 *(session->logfile) <<"Unable to open "  << endl;
+ 
+
+
+	session->response->addResponse( "Pic_tiles_info", atoi(columns.c_str()), atoi(rows.c_str()));
+ 
+
+}
+
+void OBJ::component_number(){
+  checkImage();
+
+  int components = (*session->image)->getNumComponents();
+
+  if( session->loglevel >= 2 ){
+    *(session->logfile) << "OBJ :: Component number is " << components << endl;
+  }
+  session->response->addResponse( "Component-number", components );
+}
+
+
 
 void OBJ::bits_per_channel(){
 
@@ -225,14 +299,14 @@ void OBJ::min_max_values(){
   checkImage();
   unsigned int n = (*session->image)->getNumChannels();
   string tmp = "Min-Max-sample-values:";
-  char val[24];
+  char val[10];
   float minimum, maximum;
-  for( unsigned int i=0; i<n ; i++ ){
+  for (int i=0; i<n ; i++) {
     minimum = (*session->image)->getMinValue(i);
     maximum = (*session->image)->getMaxValue(i);
-    snprintf( val, 24, " %.9g ", minimum );
+    snprintf( val, 10, " %f ", minimum );
     tmp += val;
-    snprintf( val, 24, " %.9g ", maximum );
+    snprintf( val, 10, " %f ", maximum );
     tmp += val;
   }
   // Chop off the final space

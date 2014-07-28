@@ -1,7 +1,7 @@
 /*
-    Image View and Transform Parameters
+    Image View Parameters
 
-    Copyright (C) 2003-2014 Ruven Pillay.
+    Copyright (C) 2003-2013 Ruven Pillay.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 
 #include <cstddef>
-#include <vector>
 
 #include "Transforms.h"
 
@@ -44,16 +43,18 @@ class View{
  private:
 
   // Resolution independent x,y,w,h region viewport
-  float view_left, view_top, view_width, view_height; /// viewport
+  double view_left, view_top, view_width, view_height; /// viewport
 
   int resolution;                             /// Requested resolution
   unsigned int max_resolutions;               /// Total available resolutions
-  unsigned int width, height;                 /// Width and height at requested resolution
+  unsigned int left, top, width, height;      /// Width and height at requested resolution
   unsigned int min_size;                      /// Minimum viewport dimension
   unsigned int max_size;                      /// Maximum viewport dimension
   unsigned int requested_width;               /// Width requested by WID command
   unsigned int requested_height;              /// Height requested by HEI command
   float contrast;                             /// Contrast adjustment requested by CNT command
+  int channels[3];
+  int process_args[4];
   float gamma;                                /// Gamma adjustment requested by GAM command
   float rotation;                             /// Rotation requested by ROT command
 
@@ -75,10 +76,10 @@ class View{
   bool cmapped;                                /// Whether to modify colormap
   enum cmap_type cmap;                         /// colormap
   bool inverted;                               /// Whether to invert colormap
+  bool want_ms;
   int max_layers;			       /// Maximum number of quality layers allowed
   int layers;			               /// Number of quality layers
   ColourSpaces colourspace;                    /// Requested colourspace
-  std::vector< std::vector<float> > ctw;       /// Colour twist matrix
 
 
   /// Constructor
@@ -90,7 +91,9 @@ class View{
     contrast = 1.0; gamma = 1.0;
     xangle = 0; yangle = 90;
     shaded = false; shade[0] = 0; shade[1] = 0; shade[2] = 0;
-    cmapped = false; inverted = false;
+	channels[0] = 1; channels[1] = 2; channels[2] = 3;
+	process_args[0] = 0; process_args[1] = 0; process_args[2] = 0;process_args[3] = 0;
+    cmapped = false; inverted = false;want_ms = false;
     max_layers = 0; layers = 0;
     rotation = 0.0;
     colourspace = NONE;
@@ -189,6 +192,27 @@ class View{
   /// Return the contrast adjustment
   /* @return requested contrast */
   float getContrast(){ return contrast; };
+  
+  /// Return channels mapping
+  /* @return requested channels mapping */
+  int* getChannels();
+  
+  
+  /// Set the channels mapping
+  /** @param channels array (size 3) */
+  void setChannels(int* channels);
+  
+  
+    /// Return process args
+  /* @return requested channels mapping */
+  int* getProcessArgs();
+  
+  
+  /// Set the process args
+  /** @param channels array (size 3) */
+  void setProcessArgs(int* processArgs);
+
+  
 
   /// Return the image width at our requested resolution
   /* @return image width */

@@ -72,6 +72,9 @@ class RawTile{
 
   /// Pointer to the image data
   void *data;
+  
+  /// Pointer to the multispectral image data
+  void *msData;
 
   /// This tracks whether we have allocated memory locally for data
   /// or whether it is simply a pointer
@@ -81,6 +84,8 @@ class RawTile{
   /// The size of the data pointed to by data
   int dataLength;
 
+  /// The size of the data pointed to by msData
+  int msDataLength;
   /// The width in pixels of this tile
   unsigned int width;
 
@@ -89,7 +94,9 @@ class RawTile{
 
   /// The number of channels for this tile
   int channels;
-
+	
+  /// The number of multispectral components(channels) for this tile
+  int components;	
   /// The number of bits per channel for this tile
   int bpc;
 
@@ -112,9 +119,10 @@ class RawTile{
   */
   RawTile( int tn = 0, int res = 0, int hs = 0, int vs = 0,
 	   int w = 0, int h = 0, int c = 0, int b = 0 ) {
-    width = w; height = h; bpc = b; dataLength = 0; data = NULL;
+    width = w; height = h; bpc = b; dataLength = 0; msDataLength = 0;
+	data = NULL; msData = NULL;
     tileNum = tn; resolution = res; hSequence = hs ; vSequence = vs;
-    memoryManaged = 1; channels = c; compressionType = UNCOMPRESSED; quality = 0;
+    memoryManaged = 1; channels = c; components = 0; compressionType = UNCOMPRESSED; quality = 0;
     timestamp = 0; sampleType = FIXEDPOINT; padded = false;
   };
 
@@ -129,6 +137,8 @@ class RawTile{
         break;
       case 16:
 	delete[] (unsigned short*) data;
+	if(msData)
+	delete[] (unsigned short*) msData;
         break;
       default:
 	delete[] (unsigned char*) data;
@@ -156,6 +166,8 @@ class RawTile{
     timestamp = tile.timestamp;
     sampleType = tile.sampleType;
     padded = tile.padded;
+	msDataLength = tile.msDataLength;
+	components = tile.components;
 
     switch( bpc ){
       case 32:
@@ -164,6 +176,7 @@ class RawTile{
 	break;
       case 16:
 	data = new unsigned short[dataLength/2];
+	msData = new unsigned short[msDataLength/2];
 	break;
       default:
 	data = new unsigned char[dataLength];
@@ -172,8 +185,11 @@ class RawTile{
 
     if( data && (dataLength > 0) && tile.data ){
       memcpy( data, tile.data, dataLength );
+	 
       memoryManaged = 1;
     }
+	  if( msData && (msDataLength > 0) && tile.msData )
+		memcpy( msData, tile.msData, msDataLength );
   }
 
 
@@ -195,6 +211,8 @@ class RawTile{
     timestamp = tile.timestamp;
     sampleType = tile.sampleType;
     padded = tile.padded;
+	msDataLength = tile.msDataLength;
+	components = tile.components;
 
     switch( bpc ){
       case 32:
@@ -203,6 +221,7 @@ class RawTile{
 	break;
       case 16:
 	data = new unsigned short[dataLength/2];
+	msData = new unsigned short[msDataLength/2];
 	break;
       default:
 	data = new unsigned char[dataLength];
@@ -211,9 +230,11 @@ class RawTile{
 
     if( data && (dataLength > 0) && tile.data ){
       memcpy( data, tile.data, dataLength );
+
       memoryManaged = 1;
     }
-
+	if( msData && (msDataLength > 0) && tile.msData )
+		memcpy( msData, tile.msData, msDataLength );
     return *this;
   }
 

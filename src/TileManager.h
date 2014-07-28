@@ -63,7 +63,7 @@ class TileManager{
    *  @param c CompressionType
    *  @return RawTile
    */
-  RawTile getNewTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c );
+  RawTile getNewTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c, bool want_ms=false  );
 
 
   /// Crop a tile to remove padding
@@ -108,7 +108,7 @@ class TileManager{
    *  @param c CompressionType
    *  @return RawTile
    */
-  RawTile getTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c );
+  RawTile getTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c, bool want_ms=false );
 
 
 

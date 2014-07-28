@@ -4,7 +4,7 @@
 
 /*  IIP Server: Tile Cache Handler
 
-    Copyright (C) 2005-2014 Ruven Pillay.
+    Copyright (C) 2005-2013 Ruven Pillay.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ using namespace std;
 
 
 
-RawTile TileManager::getNewTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c ){
+RawTile TileManager::getNewTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c, bool want_ms ){
 
   if( loglevel >= 2 ) *logfile << "TileManager :: Cache Miss for resolution: " << resolution << ", tile: " << tile << endl
 			       << "TileManager :: Cache Size: " << tileCache->getNumElements()
@@ -40,7 +40,7 @@ RawTile TileManager::getNewTile( int resolution, int tile, int xangle, int yangl
   RawTile ttt;
 
   // Get our raw tile from the IIPImage image object
-  ttt = image->getTile( xangle, yangle, resolution, layers, tile );
+  ttt = image->getTile( xangle, yangle, resolution, layers, tile, want_ms );
 
 
   // Apply the watermark if we have one.
@@ -57,7 +57,7 @@ RawTile TileManager::getNewTile( int resolution, int tile, int xangle, int yangl
   }
 
 
-  // We need to crop our edge tiles if they are padded
+  // We need to crop our edge tiles if they are not the full tile size
   if( ((ttt.width != image->getTileWidth()) || (ttt.height != image->getTileHeight())) && ttt.padded ){
     if( loglevel >= 5 ) * logfile << "TileManager :: Cropping tile" << endl;
     this->crop( &ttt );
@@ -80,7 +80,7 @@ RawTile TileManager::getNewTile( int resolution, int tile, int xangle, int yangl
   case JPEG:
 
     // Do our JPEG compression iff we have an 8 bit per channel image
-    if( ttt.bpc == 8 && (ttt.channels==1 || ttt.channels==3) ){
+    if( ttt.bpc == 8 ){
       if( loglevel >=2 ) compression_timer.start();
       jpeg->Compress( ttt );
       if( loglevel >= 2 ) *logfile << "TileManager :: JPEG Compression Time: "
@@ -154,8 +154,9 @@ void TileManager::crop( RawTile *ttt ){
 
 
 
-RawTile TileManager::getTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c ){
+RawTile TileManager::getTile( int resolution, int tile, int xangle, int yangle, int layers, CompressionType c, bool want_ms ){
 
+ 
   RawTile* rawtile = NULL;
   string tileCompression;
   string compName;
@@ -191,7 +192,6 @@ RawTile TileManager::getTile( int resolution, int tile, int xangle, int yangle, 
 
 
     case UNCOMPRESSED:
-
       if( (rawtile = tileCache->getTile( image->getImagePath(), resolution, tile,
 					 xangle, yangle, UNCOMPRESSED, 0 )) ) break;
       break;
@@ -211,8 +211,8 @@ RawTile TileManager::getTile( int resolution, int tile, int xangle, int yangle, 
 			           << rawtile->timestamp << " - " << image->timestamp
                                    << " ... updating" << endl;
     }
-
-    RawTile newtile = this->getNewTile( resolution, tile, xangle, yangle, layers, c );
+	// TMP want_ms to true for the moment, I have to handle cache issue
+    RawTile newtile = this->getNewTile( resolution, tile, xangle, yangle, layers, c, true );
 
     if( loglevel >= 2 ) *logfile << "TileManager :: Total Tile Access Time: "
 				 << tile_timer.getTime() << " microseconds" << endl;
@@ -244,8 +244,8 @@ RawTile TileManager::getTile( int resolution, int tile, int xangle, int yangle, 
     // Rawtile is a pointer to the cache data, so we need to create a copy of it in case we compress it
     RawTile ttt( *rawtile );
 
-    // Do our JPEG compression iff we have an 8 bit per channel image and either 1 or 3 bands
-    if( rawtile->bpc==8 && (rawtile->channels==1 || rawtile->channels==3) ){
+    // Do our JPEG compression iff we have an 8 bit per channel image
+    if( rawtile->bpc == 8 ){
 
       // Crop if this is an edge tile
       if( ( (ttt.width != image->getTileWidth()) || (ttt.height != image->getTileHeight()) ) && ttt.padded ){
@@ -390,9 +390,12 @@ RawTile TileManager::getRegion( unsigned int res, int seq, int ang, int layers, 
 		 << rawtile.bpc << " bits per channel" << endl;
       }
 
-      // Set the tile width and height to be that of the source tile - Use the rawtile data
-      // because if we take a tile from cache the image pointer will not necessarily be pointing
-      // to the the current tile
+      // Set the tile width and height to be that of the source tile
+      // - Use the rawtile data because if we take a tile from cache
+      //   the image pointer will not necessarily be pointing to the
+      //   the current tile
+      //	src_tile_width = (*session->image)->getTileWidth();
+      //	src_tile_height = (*session->image)->getTileHeight();
       src_tile_width = rawtile.width;
       src_tile_height = rawtile.height;
       dst_tile_width = src_tile_width;

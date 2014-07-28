@@ -22,9 +22,11 @@
 #ifndef _TRANSFORMS_H
 #define _TRANSFORMS_H
 
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include "RawTile.h"
-
+ using namespace std;
 /// Function to create normalized array
 /** @param in tile data to be adjusted
     @param min : vector of minima
@@ -66,6 +68,13 @@ void filter_LAB2sRGB( RawTile& in );
 */
 void filter_contrast( RawTile& in, float c );
 
+/// Function to change the mapping of the default RVB channels
+/** @param in tile data to be adjusted
+*/
+void filter_map_channels( RawTile& in, int channels[]);
+
+void filter_thresholding(RawTile& in, int processArgs[], int channels[],std::vector<float>& max);
+
 
 /// Apply a gamma correction
 /** @param in tile input data
@@ -103,17 +112,5 @@ void filter_rotate( RawTile& in, float angle );
 void filter_greyscale( RawTile& in );
 
 
-/// Apply a color twist
-/** @param in input image
-    @param ctw 2D color twist matrix
-*/
-void filter_twist( RawTile& in, const std::vector< std::vector<float> >& ctw );
-
-
-/// Extract bands
-/** @param in input image
-    @param bands number of bands
-*/
-void filter_flatten( RawTile& in, int bands );
 
 #endif

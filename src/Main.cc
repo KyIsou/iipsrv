@@ -1,7 +1,7 @@
 /*
     IIP FCGI server module - Main loop.
 
-    Copyright (C) 2000-2014 Ruven Pillay
+    Copyright (C) 2000-2013 Ruven Pillay
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -149,6 +149,7 @@ int main( int argc, char *argv[] )
 
   loglevel = Environment::getVerbosity();
 
+
   if( loglevel >= 1 ){
 
     // Check for the requested log file path
@@ -255,10 +256,6 @@ int main( int argc, char *argv[] )
 		       Environment::getWatermarkProbability() );
 
 
-  // Get the CORS setting
-  string cors = Environment::getCORS();
-
-
   // Print out some information
   if( loglevel >= 1 ){
     logfile << "Setting maximum image cache size to " << max_image_cache_size << "MB" << endl;
@@ -266,7 +263,6 @@ int main( int argc, char *argv[] )
     logfile << "Setting default JPEG quality to " << jpeg_quality << endl;
     logfile << "Setting maximum CVT size to " << max_CVT << endl;
     logfile << "Setting 3D file sequence name pattern to '" << filename_pattern << "'" << endl;
-    if( !cors.empty() ) logfile << "Setting Cross Origin Resource Sharing to '" << cors << "'" << endl;
     if( max_layers != 0 ){
       logfile << "Setting max quality layers (for supported file formats) to ";
       if( max_layers < 0 ) logfile << "all layers" << endl;
@@ -326,7 +322,7 @@ int main( int argc, char *argv[] )
 
   map <string, string> moduleList;
   string modulePath;
-  envpara = getenv( "DECODER_MODULES" );
+  char *envpara = getenv( "DECODER_MODULES" );
 
   if( envpara ){
 
@@ -443,7 +439,7 @@ int main( int argc, char *argv[] )
     // Create an IIPResponse object - we use this for the OBJ requests.
     // As the commands return images etc, they handle their own responses.
     IIPResponse response;
-    response.setCORS( cors );
+
 
     try{
       

@@ -104,6 +104,7 @@ class KakaduImage : public IIPImage {
   /// Tile or Strip region
   kdu_dims comp_dims;
 
+
   /// Number of levels that don't physically exist
   unsigned int virtual_levels;
 
@@ -115,8 +116,10 @@ class KakaduImage : public IIPImage {
       @param w width of region
       @param h height of region
       @param d buffer to fill
+	  @param ms want extract multispectral components
+	  @param m buffer to fill for multispectral component
    */
-  void process( unsigned int r, int l, int x, int y, unsigned int w, unsigned int h, void* d ) throw (std::string);
+  void process( unsigned int r, int l, int x, int y, unsigned int w, unsigned int h, void* d,  bool want_ms = false, void* ms = 0 ) throw (std::string);
 
   /// Convenience function to delete allocated buffers
   /** @param b pointer to buffer
@@ -141,12 +144,16 @@ class KakaduImage : public IIPImage {
   /// Copy Constructor
   /** @param image Kakadu object
    */
-  KakaduImage( const KakaduImage& image ): IIPImage( image ), virtual_levels( image.virtual_levels ){};
+  KakaduImage( const KakaduImage& image ): IIPImage( image ), virtual_levels( image.virtual_levels ){
+  //tile_width = image.tile_width; tile_height = image.tile_height;
+	 tile_width = TILESIZE; tile_height = TILESIZE;
+  };
 
   /// Constructor from IIPImage object
   /** @param image IIPImage object
    */
   KakaduImage( const IIPImage& image ): IIPImage( image ), virtual_levels( 0 ){
+   //tile_width = image.tile_width; tile_height = image.tile_height;
     tile_width = TILESIZE; tile_height = TILESIZE;
   };
 
@@ -187,8 +194,9 @@ class KakaduImage : public IIPImage {
       @param r resolution
       @param l number of quality layers to decode
       @param t tile number
+	  @param want_ms bool to enable ms research (default false)
    */
-  RawTile getTile( int x, int y, unsigned int r, int l, unsigned int t ) throw (std::string);
+  RawTile getTile( int x, int y, unsigned int r, int l, unsigned int t, bool want_ms=false ) throw (std::string);
 
   /// Overloaded function for returning a region for a given angle and resolution
   /** Return a RawTile object: Overloaded by child class.
